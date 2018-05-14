@@ -47,12 +47,19 @@ Partial Class frmNetStart
     Me.imlIcons = New System.Windows.Forms.ImageList(Me.components)
     Me.lvNet = New System.Windows.Forms.ListView()
     Me.colNet = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+    Me.pctOSStartup = New System.Windows.Forms.PictureBox()
+    Me.pctNetStartup = New System.Windows.Forms.PictureBox()
+    Me.mnuStartup = New System.Windows.Forms.ContextMenu()
+    Me.mnuStartupCurrent = New System.Windows.Forms.MenuItem()
+    Me.mnuStartupAll = New System.Windows.Forms.MenuItem()
     Me.pnlConfig.SuspendLayout()
     Me.grpTest.SuspendLayout()
     Me.pnlTest.SuspendLayout()
     CType(Me.txtSize, System.ComponentModel.ISupportInitialize).BeginInit()
     Me.GroupBox1.SuspendLayout()
     Me.pnlStartupList.SuspendLayout()
+    CType(Me.pctOSStartup, System.ComponentModel.ISupportInitialize).BeginInit()
+    CType(Me.pctNetStartup, System.ComponentModel.ISupportInitialize).BeginInit()
     Me.SuspendLayout()
     '
     'tmrCheck
@@ -236,13 +243,17 @@ Partial Class frmNetStart
     '
     'pnlStartupList
     '
-    Me.pnlStartupList.ColumnCount = 2
+    Me.pnlStartupList.ColumnCount = 4
     Me.pnlStartupList.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+    Me.pnlStartupList.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
     Me.pnlStartupList.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50.0!))
+    Me.pnlStartupList.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
     Me.pnlStartupList.Controls.Add(Me.lblStartNoNet, 0, 0)
-    Me.pnlStartupList.Controls.Add(Me.lblStartNet, 1, 0)
+    Me.pnlStartupList.Controls.Add(Me.lblStartNet, 2, 0)
     Me.pnlStartupList.Controls.Add(Me.lvNoNet, 0, 1)
-    Me.pnlStartupList.Controls.Add(Me.lvNet, 1, 1)
+    Me.pnlStartupList.Controls.Add(Me.lvNet, 2, 1)
+    Me.pnlStartupList.Controls.Add(Me.pctOSStartup, 1, 0)
+    Me.pnlStartupList.Controls.Add(Me.pctNetStartup, 3, 0)
     Me.pnlStartupList.Dock = System.Windows.Forms.DockStyle.Fill
     Me.pnlStartupList.Location = New System.Drawing.Point(3, 16)
     Me.pnlStartupList.Name = "pnlStartupList"
@@ -256,7 +267,7 @@ Partial Class frmNetStart
     '
     Me.lblStartNoNet.Anchor = System.Windows.Forms.AnchorStyles.None
     Me.lblStartNoNet.AutoSize = True
-    Me.lblStartNoNet.Location = New System.Drawing.Point(24, 3)
+    Me.lblStartNoNet.Location = New System.Drawing.Point(14, 3)
     Me.lblStartNoNet.Name = "lblStartNoNet"
     Me.lblStartNoNet.Size = New System.Drawing.Size(47, 13)
     Me.lblStartNoNet.TabIndex = 0
@@ -266,7 +277,7 @@ Partial Class frmNetStart
     '
     Me.lblStartNet.Anchor = System.Windows.Forms.AnchorStyles.None
     Me.lblStartNet.AutoSize = True
-    Me.lblStartNet.Location = New System.Drawing.Point(110, 3)
+    Me.lblStartNet.Location = New System.Drawing.Point(100, 3)
     Me.lblStartNet.Name = "lblStartNet"
     Me.lblStartNet.Size = New System.Drawing.Size(68, 13)
     Me.lblStartNet.TabIndex = 1
@@ -276,6 +287,7 @@ Partial Class frmNetStart
     '
     Me.lvNoNet.AllowDrop = True
     Me.lvNoNet.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.colNoNet})
+    Me.pnlStartupList.SetColumnSpan(Me.lvNoNet, 2)
     Me.lvNoNet.Dock = System.Windows.Forms.DockStyle.Fill
     Me.lvNoNet.FullRowSelect = True
     Me.lvNoNet.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
@@ -305,6 +317,7 @@ Partial Class frmNetStart
     '
     Me.lvNet.AllowDrop = True
     Me.lvNet.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.colNet})
+    Me.pnlStartupList.SetColumnSpan(Me.lvNet, 2)
     Me.lvNet.Dock = System.Windows.Forms.DockStyle.Fill
     Me.lvNet.FullRowSelect = True
     Me.lvNet.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
@@ -323,6 +336,42 @@ Partial Class frmNetStart
     'colNet
     '
     Me.colNet.Text = "Program"
+    '
+    'pctOSStartup
+    '
+    Me.pctOSStartup.Anchor = System.Windows.Forms.AnchorStyles.None
+    Me.pctOSStartup.Image = Global.NetStart.My.Resources.Resources.folder
+    Me.pctOSStartup.Location = New System.Drawing.Point(78, 2)
+    Me.pctOSStartup.Margin = New System.Windows.Forms.Padding(0)
+    Me.pctOSStartup.Name = "pctOSStartup"
+    Me.pctOSStartup.Size = New System.Drawing.Size(16, 16)
+    Me.pctOSStartup.TabIndex = 4
+    Me.pctOSStartup.TabStop = False
+    '
+    'pctNetStartup
+    '
+    Me.pctNetStartup.Anchor = System.Windows.Forms.AnchorStyles.None
+    Me.pctNetStartup.Image = Global.NetStart.My.Resources.Resources.folder
+    Me.pctNetStartup.Location = New System.Drawing.Point(174, 2)
+    Me.pctNetStartup.Margin = New System.Windows.Forms.Padding(0)
+    Me.pctNetStartup.Name = "pctNetStartup"
+    Me.pctNetStartup.Size = New System.Drawing.Size(16, 16)
+    Me.pctNetStartup.TabIndex = 4
+    Me.pctNetStartup.TabStop = False
+    '
+    'mnuStartup
+    '
+    Me.mnuStartup.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuStartupCurrent, Me.mnuStartupAll})
+    '
+    'mnuStartupCurrent
+    '
+    Me.mnuStartupCurrent.Index = 0
+    Me.mnuStartupCurrent.Text = "&Current User"
+    '
+    'mnuStartupAll
+    '
+    Me.mnuStartupAll.Index = 1
+    Me.mnuStartupAll.Text = "&All Users"
     '
     'frmNetStart
     '
@@ -347,6 +396,8 @@ Partial Class frmNetStart
     Me.GroupBox1.ResumeLayout(False)
     Me.pnlStartupList.ResumeLayout(False)
     Me.pnlStartupList.PerformLayout()
+    CType(Me.pctOSStartup, System.ComponentModel.ISupportInitialize).EndInit()
+    CType(Me.pctNetStartup, System.ComponentModel.ISupportInitialize).EndInit()
     Me.ResumeLayout(False)
 
   End Sub
@@ -373,5 +424,10 @@ Partial Class frmNetStart
   Friend WithEvents colNoNet As System.Windows.Forms.ColumnHeader
   Friend WithEvents colNet As System.Windows.Forms.ColumnHeader
   Friend WithEvents imlIcons As System.Windows.Forms.ImageList
+  Friend WithEvents pctOSStartup As System.Windows.Forms.PictureBox
+  Friend WithEvents pctNetStartup As System.Windows.Forms.PictureBox
+  Friend WithEvents mnuStartup As System.Windows.Forms.ContextMenu
+  Friend WithEvents mnuStartupCurrent As System.Windows.Forms.MenuItem
+  Friend WithEvents mnuStartupAll As System.Windows.Forms.MenuItem
 
 End Class

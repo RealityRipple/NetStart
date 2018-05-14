@@ -129,6 +129,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="folder.ico" />
     <Content Include="icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />

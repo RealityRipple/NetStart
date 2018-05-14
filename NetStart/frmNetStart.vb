@@ -88,11 +88,21 @@
 
   Public Sub RunIt()
     For Each sShortcut In My.Computer.FileSystem.GetFiles(sPath)
-      If Not CBool(My.Computer.FileSystem.GetFileInfo(sShortcut).Attributes And IO.FileAttributes.Hidden) Then Process.Start(sShortcut)
+      If Not CBool(My.Computer.FileSystem.GetFileInfo(sShortcut).Attributes And IO.FileAttributes.Hidden) Then
+        Try
+          Process.Start(sShortcut)
+        Catch ex As Exception
+        End Try
+      End If
     Next
     If Not String.IsNullOrEmpty(sAllPath) Then
       For Each sShortcut In My.Computer.FileSystem.GetFiles(sAllPath)
-        If Not CBool(My.Computer.FileSystem.GetFileInfo(sShortcut).Attributes And IO.FileAttributes.Hidden) Then Process.Start(sShortcut)
+        If Not CBool(My.Computer.FileSystem.GetFileInfo(sShortcut).Attributes And IO.FileAttributes.Hidden) Then
+          Try
+            Process.Start(sShortcut)
+          Catch ex As Exception
+          End Try
+        End If
       Next
     End If
   End Sub
@@ -133,7 +143,7 @@
   End Function
 
   Private Sub cmdDonate_Click(sender As System.Object, e As System.EventArgs) Handles cmdDonate.Click
-    Diagnostics.Process.Start("http://realityripple.com/donate.php")
+    Diagnostics.Process.Start("https://realityripple.com/donate.php")
   End Sub
 
   Private Sub cmdTest_Click(sender As System.Object, e As System.EventArgs) Handles cmdTest.Click
@@ -294,5 +304,29 @@
       e.Handled = True
       lvNoNet.Focus()
     End If
+  End Sub
+
+  Private Sub pctNetStartup_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles pctNetStartup.MouseDown
+    mnuStartup.Tag = "NET"
+    mnuStartup.Show(pctNetStartup, New Point(0, 17))
+  End Sub
+
+  Private Sub pctOSStartup_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles pctOSStartup.MouseDown
+    mnuStartup.Tag = "OS"
+    mnuStartup.Show(pctOSStartup, New Point(0, 17))
+  End Sub
+
+  Private Sub mnuStartupCurrent_Click(sender As System.Object, e As System.EventArgs) Handles mnuStartupCurrent.Click
+    Dim startPath As String = Environment.GetFolderPath(Environment.SpecialFolder.Startup)
+    If mnuStartup.Tag = "NET" Then startPath = sPath
+    mnuStartup.Tag = Nothing
+    If IO.Directory.Exists(startPath) Then Process.Start(startPath)
+  End Sub
+
+  Private Sub mnuStartupAll_Click(sender As System.Object, e As System.EventArgs) Handles mnuStartupAll.Click
+    Dim startPath As String = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup)
+    If mnuStartup.Tag = "NET" Then startPath = sAllPath
+    mnuStartup.Tag = Nothing
+    If IO.Directory.Exists(startPath) Then Process.Start(startPath)
   End Sub
 End Class
