@@ -1,9 +1,9 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class frmNetStart
   Inherits System.Windows.Forms.Form
 
   'Form overrides dispose to clean up the component list.
-  <System.Diagnostics.DebuggerNonUserCode()> _
+  <System.Diagnostics.DebuggerNonUserCode()>
   Protected Overrides Sub Dispose(ByVal disposing As Boolean)
     Try
       If disposing AndAlso components IsNot Nothing Then
@@ -20,7 +20,7 @@ Partial Class frmNetStart
   'NOTE: The following procedure is required by the Windows Form Designer
   'It can be modified using the Windows Form Designer.  
   'Do not modify it using the code editor.
-  <System.Diagnostics.DebuggerStepThrough()> _
+  <System.Diagnostics.DebuggerStepThrough()>
   Private Sub InitializeComponent()
     Me.components = New System.ComponentModel.Container()
     Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmNetStart))
@@ -49,9 +49,17 @@ Partial Class frmNetStart
     Me.colNet = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
     Me.pctOSStartup = New System.Windows.Forms.PictureBox()
     Me.pctNetStartup = New System.Windows.Forms.PictureBox()
+    Me.mnuStartupDir = New System.Windows.Forms.ContextMenu()
+    Me.mnuStartupDirCurrent = New System.Windows.Forms.MenuItem()
+    Me.mnuStartupDirAll = New System.Windows.Forms.MenuItem()
     Me.mnuStartup = New System.Windows.Forms.ContextMenu()
     Me.mnuStartupCurrent = New System.Windows.Forms.MenuItem()
     Me.mnuStartupAll = New System.Windows.Forms.MenuItem()
+    Me.tmrSave = New System.Windows.Forms.Timer(Me.components)
+    Me.fswOSAllUsers = New System.IO.FileSystemWatcher()
+    Me.fswOSCurrentUser = New System.IO.FileSystemWatcher()
+    Me.fswNETAllUsers = New System.IO.FileSystemWatcher()
+    Me.fswNetCurrentUser = New System.IO.FileSystemWatcher()
     Me.pnlConfig.SuspendLayout()
     Me.grpTest.SuspendLayout()
     Me.pnlTest.SuspendLayout()
@@ -60,6 +68,10 @@ Partial Class frmNetStart
     Me.pnlStartupList.SuspendLayout()
     CType(Me.pctOSStartup, System.ComponentModel.ISupportInitialize).BeginInit()
     CType(Me.pctNetStartup, System.ComponentModel.ISupportInitialize).BeginInit()
+    CType(Me.fswOSAllUsers, System.ComponentModel.ISupportInitialize).BeginInit()
+    CType(Me.fswOSCurrentUser, System.ComponentModel.ISupportInitialize).BeginInit()
+    CType(Me.fswNETAllUsers, System.ComponentModel.ISupportInitialize).BeginInit()
+    CType(Me.fswNetCurrentUser, System.ComponentModel.ISupportInitialize).BeginInit()
     Me.SuspendLayout()
     '
     'tmrCheck
@@ -293,6 +305,7 @@ Partial Class frmNetStart
     Me.lvNoNet.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
     Me.lvNoNet.HideSelection = False
     Me.lvNoNet.Location = New System.Drawing.Point(3, 23)
+    Me.lvNoNet.MultiSelect = False
     Me.lvNoNet.Name = "lvNoNet"
     Me.lvNoNet.ShowGroups = False
     Me.lvNoNet.ShowItemToolTips = True
@@ -323,6 +336,7 @@ Partial Class frmNetStart
     Me.lvNet.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
     Me.lvNet.HideSelection = False
     Me.lvNet.Location = New System.Drawing.Point(99, 23)
+    Me.lvNet.MultiSelect = False
     Me.lvNet.Name = "lvNet"
     Me.lvNet.ShowGroups = False
     Me.lvNet.ShowItemToolTips = True
@@ -359,6 +373,20 @@ Partial Class frmNetStart
     Me.pctNetStartup.TabIndex = 4
     Me.pctNetStartup.TabStop = False
     '
+    'mnuStartupDir
+    '
+    Me.mnuStartupDir.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuStartupDirCurrent, Me.mnuStartupDirAll})
+    '
+    'mnuStartupDirCurrent
+    '
+    Me.mnuStartupDirCurrent.Index = 0
+    Me.mnuStartupDirCurrent.Text = "&Current User"
+    '
+    'mnuStartupDirAll
+    '
+    Me.mnuStartupDirAll.Index = 1
+    Me.mnuStartupDirAll.Text = "&All Users"
+    '
     'mnuStartup
     '
     Me.mnuStartup.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuStartupCurrent, Me.mnuStartupAll})
@@ -373,6 +401,31 @@ Partial Class frmNetStart
     Me.mnuStartupAll.Index = 1
     Me.mnuStartupAll.Text = "&All Users"
     '
+    'tmrSave
+    '
+    Me.tmrSave.Enabled = True
+    Me.tmrSave.Interval = 300
+    '
+    'fswOSAllUsers
+    '
+    Me.fswOSAllUsers.EnableRaisingEvents = True
+    Me.fswOSAllUsers.SynchronizingObject = Me
+    '
+    'fswOSCurrentUser
+    '
+    Me.fswOSCurrentUser.EnableRaisingEvents = True
+    Me.fswOSCurrentUser.SynchronizingObject = Me
+    '
+    'fswNETAllUsers
+    '
+    Me.fswNETAllUsers.EnableRaisingEvents = True
+    Me.fswNETAllUsers.SynchronizingObject = Me
+    '
+    'fswNetCurrentUser
+    '
+    Me.fswNetCurrentUser.EnableRaisingEvents = True
+    Me.fswNetCurrentUser.SynchronizingObject = Me
+    '
     'frmNetStart
     '
     Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -385,6 +438,7 @@ Partial Class frmNetStart
     Me.MinimizeBox = False
     Me.MinimumSize = New System.Drawing.Size(520, 200)
     Me.Name = "frmNetStart"
+    Me.Opacity = 0R
     Me.ShowInTaskbar = False
     Me.Text = "NetStart"
     Me.pnlConfig.ResumeLayout(False)
@@ -398,6 +452,10 @@ Partial Class frmNetStart
     Me.pnlStartupList.PerformLayout()
     CType(Me.pctOSStartup, System.ComponentModel.ISupportInitialize).EndInit()
     CType(Me.pctNetStartup, System.ComponentModel.ISupportInitialize).EndInit()
+    CType(Me.fswOSAllUsers, System.ComponentModel.ISupportInitialize).EndInit()
+    CType(Me.fswOSCurrentUser, System.ComponentModel.ISupportInitialize).EndInit()
+    CType(Me.fswNETAllUsers, System.ComponentModel.ISupportInitialize).EndInit()
+    CType(Me.fswNetCurrentUser, System.ComponentModel.ISupportInitialize).EndInit()
     Me.ResumeLayout(False)
 
   End Sub
@@ -426,8 +484,15 @@ Partial Class frmNetStart
   Friend WithEvents imlIcons As System.Windows.Forms.ImageList
   Friend WithEvents pctOSStartup As System.Windows.Forms.PictureBox
   Friend WithEvents pctNetStartup As System.Windows.Forms.PictureBox
+  Friend WithEvents mnuStartupDir As System.Windows.Forms.ContextMenu
+  Friend WithEvents mnuStartupDirCurrent As System.Windows.Forms.MenuItem
+  Friend WithEvents mnuStartupDirAll As System.Windows.Forms.MenuItem
   Friend WithEvents mnuStartup As System.Windows.Forms.ContextMenu
   Friend WithEvents mnuStartupCurrent As System.Windows.Forms.MenuItem
   Friend WithEvents mnuStartupAll As System.Windows.Forms.MenuItem
-
+  Friend WithEvents tmrSave As System.Windows.Forms.Timer
+  Friend WithEvents fswOSAllUsers As System.IO.FileSystemWatcher
+  Friend WithEvents fswOSCurrentUser As System.IO.FileSystemWatcher
+  Friend WithEvents fswNETAllUsers As System.IO.FileSystemWatcher
+  Friend WithEvents fswNetCurrentUser As System.IO.FileSystemWatcher
 End Class

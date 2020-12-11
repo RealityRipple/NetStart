@@ -1,5 +1,7 @@
 ﻿Public Class frmNetStart
   Private sPath, sAllPath As String, bActive, bCheck As Boolean
+  Private ReadOnly UserCurrentColor As Color = SystemColors.GrayText
+  Private ReadOnly UserAllColor As Color = SystemColors.WindowText
 
   Private Sub frmNetStart_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
     txtAddress.Text = My.Settings.RemoteFile
@@ -18,10 +20,38 @@
         link.Save(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) & "\NetStart.lnk")
       End Using
     End If
+
+    fswOSCurrentUser.Path = Environment.GetFolderPath(Environment.SpecialFolder.Startup)
+    fswOSCurrentUser.NotifyFilter = &H17F
+    fswOSCurrentUser.EnableRaisingEvents = True
+    fswOSAllUsers.Path = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup)
+    fswOSAllUsers.NotifyFilter = &H17F
+    fswOSAllUsers.EnableRaisingEvents = True
+    fswNetCurrentUser.Path = sPath
+    fswNetCurrentUser.NotifyFilter = &H17F
+    fswNetCurrentUser.EnableRaisingEvents = True
+    fswNETAllUsers.Path = sAllPath
+    fswNETAllUsers.NotifyFilter = &H17F
+    fswNETAllUsers.EnableRaisingEvents = True
+
     PopulateLists()
     bCheck = True
     tmrCheck.Start()
-    Me.Opacity = 0
+    Me.ShowInTaskbar = False
+  End Sub
+
+  Private Sub frmNetStart_Shown(sender As Object, e As EventArgs) Handles Me.Shown
+    If Me.Opacity = 0 Then Me.Hide()
+  End Sub
+
+  Private Sub fswPath_Changed(sender As Object, e As IO.FileSystemEventArgs) Handles fswOSAllUsers.Changed, fswOSCurrentUser.Changed, fswNETAllUsers.Changed, fswNetCurrentUser.Changed
+    lvNet.SuspendLayout()
+    lvNoNet.SuspendLayout()
+    lvNet.Items.Clear()
+    lvNoNet.Items.Clear()
+    PopulateLists()
+    lvNet.ResumeLayout()
+    lvNoNet.ResumeLayout()
   End Sub
 
   Private Sub PopulateLists()
@@ -72,16 +102,16 @@
     lstX.ImageKey = icoID
     Select Case type
       Case 0
-        lstX.ForeColor = SystemColors.WindowText
+        lstX.ForeColor = UserCurrentColor
         lstX.ToolTipText = IO.Path.GetFileNameWithoutExtension(path) & vbNewLine & "Current User with OS"
       Case 1
-        lstX.ForeColor = SystemColors.InactiveCaptionText
+        lstX.ForeColor = UserAllColor
         lstX.ToolTipText = IO.Path.GetFileNameWithoutExtension(path) & vbNewLine & "All Users with OS"
       Case 2
-        lstX.ForeColor = SystemColors.WindowText
+        lstX.ForeColor = UserCurrentColor
         lstX.ToolTipText = IO.Path.GetFileNameWithoutExtension(path) & vbNewLine & "Current User with Internet"
       Case 3
-        lstX.ForeColor = SystemColors.InactiveCaptionText
+        lstX.ForeColor = UserAllColor
         lstX.ToolTipText = IO.Path.GetFileNameWithoutExtension(path) & vbNewLine & "All Users with Internet"
     End Select
   End Sub
@@ -113,6 +143,7 @@
     If Me.Opacity = 0 Then
       Me.Hide()
       Me.Opacity = 1
+      Me.ShowInTaskbar = True
     End If
     If Not bCheck And My.Settings.Persistant Then If Not CheckNet() Then bCheck = True
     If bCheck Then
@@ -143,7 +174,7 @@
   End Function
 
   Private Sub cmdDonate_Click(sender As System.Object, e As System.EventArgs) Handles cmdDonate.Click
-    Diagnostics.Process.Start("https://realityripple.com/donate.php")
+    Diagnostics.Process.Start("https://realityripple.com/donate.php?itm=NetStart")
   End Sub
 
   Private Sub cmdTest_Click(sender As System.Object, e As System.EventArgs) Handles cmdTest.Click
@@ -151,7 +182,13 @@
     Dim sInfo As String = My.Computer.FileSystem.SpecialDirectories.Temp & "\file.dat"
     If My.Computer.FileSystem.FileExists(sInfo) Then My.Computer.FileSystem.DeleteFile(sInfo)
     Application.DoEvents()
-    My.Computer.Network.DownloadFile(txtAddress.Text, sInfo)
+    Try
+      My.Computer.Network.DownloadFile(txtAddress.Text, sInfo)
+    Catch ex As Exception
+      lblStatus.Text = "Error: " & ex.Message
+      txtAddress.Focus()
+      Return
+    End Try
     lblStatus.Text = "Size: " & My.Computer.FileSystem.GetFileInfo(sInfo).Length & " bytes"
     If txtSize.Value = 0 Then
       lblStatus.Text &= " (Set)"
@@ -169,6 +206,33 @@
     Me.Hide()
   End Sub
 
+  Private Function HasChanges() As Boolean
+    If String.IsNullOrEmpty(txtAddress.Text) Then txtAddress.Text = "http://realityripple.com/realityripple.com"
+    If txtSize.Value = 0 Then txtSize.Value = 759
+    If Not My.Settings.RemoteFile = txtAddress.Text Then Return True
+    If Not My.Settings.FileSize = txtSize.Value Then Return True
+    If Not My.Settings.Persistant = chkEveryTime.Checked Then Return True
+    For Each lvItem As ListViewItem In lvNet.Items
+      If lvItem.ForeColor = UserCurrentColor Then
+        If Not CType(lvItem.Tag, String).StartsWith(sPath & "\") Then Return True
+      Else
+        If Not String.IsNullOrEmpty(sAllPath) Then
+          If Not CType(lvItem.Tag, String).StartsWith(sAllPath & "\") Then Return True
+        End If
+      End If
+    Next
+    For Each lvItem As ListViewItem In lvNoNet.Items
+      If lvItem.ForeColor = UserCurrentColor Then
+        If Not CType(lvItem.Tag, String).StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.Startup) & "\") Then Return True
+      Else
+        If Not String.IsNullOrEmpty(sAllPath) Then
+          If Not CType(lvItem.Tag, String).StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) & "\") Then Return True
+        End If
+      End If
+    Next
+    Return False
+  End Function
+
   Private Sub cmdSave_Click(sender As System.Object, e As System.EventArgs) Handles cmdSave.Click
     If String.IsNullOrEmpty(txtAddress.Text) Then txtAddress.Text = "http://realityripple.com/realityripple.com"
     If txtSize.Value = 0 Then txtSize.Value = 759
@@ -176,40 +240,65 @@
     My.Settings.FileSize = txtSize.Value
     My.Settings.Persistant = chkEveryTime.Checked
     My.Settings.Save()
+    Dim sErrors As New List(Of String)
     For Each lvItem As ListViewItem In lvNet.Items
-      If lvItem.ForeColor = SystemColors.WindowText Then
+      If Not IO.File.Exists(lvItem.Tag) Then Continue For
+      If lvItem.ForeColor = UserCurrentColor Then
         If Not CType(lvItem.Tag, String).StartsWith(sPath & "\") Then
           Dim NewPath As String = sPath & "\" & IO.Path.GetFileName(lvItem.Tag)
-          My.Computer.FileSystem.MoveFile(lvItem.Tag, NewPath, True)
+          Try
+            My.Computer.FileSystem.MoveFile(lvItem.Tag, NewPath, True)
+          Catch ex As Exception
+            sErrors.Add(lvItem.Tag & ": " & ex.Message)
+          End Try
           lvItem.Tag = NewPath
         End If
       Else
         If Not String.IsNullOrEmpty(sAllPath) Then
           If Not CType(lvItem.Tag, String).StartsWith(sAllPath & "\") Then
             Dim NewPath As String = sAllPath & "\" & IO.Path.GetFileName(lvItem.Tag)
-            My.Computer.FileSystem.MoveFile(lvItem.Tag, NewPath, True)
+            Try
+              My.Computer.FileSystem.MoveFile(lvItem.Tag, NewPath, True)
+            Catch ex As Exception
+              sErrors.Add(lvItem.Tag & ": " & ex.Message)
+            End Try
             lvItem.Tag = NewPath
           End If
         End If
       End If
     Next
     For Each lvItem As ListViewItem In lvNoNet.Items
-      If lvItem.ForeColor = SystemColors.WindowText Then
+      If Not IO.File.Exists(lvItem.Tag) Then Continue For
+      If lvItem.ForeColor = UserCurrentColor Then
         If Not CType(lvItem.Tag, String).StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.Startup) & "\") Then
           Dim NewPath As String = Environment.GetFolderPath(Environment.SpecialFolder.Startup) & "\" & IO.Path.GetFileName(lvItem.Tag)
-          My.Computer.FileSystem.MoveFile(lvItem.Tag, NewPath, True)
+          Try
+            My.Computer.FileSystem.MoveFile(lvItem.Tag, NewPath, True)
+          Catch ex As Exception
+            sErrors.Add(lvItem.Tag & ": " & ex.Message)
+          End Try
           lvItem.Tag = NewPath
         End If
       Else
         If Not String.IsNullOrEmpty(sAllPath) Then
           If Not CType(lvItem.Tag, String).StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) & "\") Then
             Dim NewPath As String = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup) & "\" & IO.Path.GetFileName(lvItem.Tag)
-            My.Computer.FileSystem.MoveFile(lvItem.Tag, NewPath, True)
+            Try
+              My.Computer.FileSystem.MoveFile(lvItem.Tag, NewPath, True)
+            Catch ex As Exception
+              sErrors.Add(lvItem.Tag & ": " & ex.Message)
+            End Try
             lvItem.Tag = NewPath
           End If
         End If
       End If
     Next
+    cmdSave.Enabled = HasChanges()
+    If sErrors.Count = 1 Then
+      MsgBox("There was an error while trying to move " & sErrors.Item(0).Replace(": ", vbNewLine & "  "), MsgBoxStyle.Critical, "NetStart - Shortcut Access Error")
+    ElseIf sErrors.Count > 1 Then
+      MsgBox("There was an error while trying to move " & sErrors.Count & " shortcuts:" & vbNewLine & "  " & Join(sErrors.ToArray, vbNewLine & "  "), MsgBoxStyle.Critical, "NetStart - Shortcut Access Error")
+    End If
   End Sub
 
   Private Sub lvNoNet_DragDrop(sender As Object, e As System.Windows.Forms.DragEventArgs) Handles lvNoNet.DragDrop
@@ -218,7 +307,7 @@
       For Each lvItem As ListViewItem In lvItems
         lvNet.Items.Remove(lvItem)
         lvNoNet.Items.Add(lvItem)
-        If lvItem.ForeColor = SystemColors.WindowText Then
+        If lvItem.ForeColor = UserCurrentColor Then
           lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(lvItem.Tag) & vbNewLine & "Current User with OS"
         Else
           lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(lvItem.Tag) & vbNewLine & "All Users with OS"
@@ -244,7 +333,7 @@
       For Each lvItem As ListViewItem In lvItems
         lvNoNet.Items.Remove(lvItem)
         lvNet.Items.Add(lvItem)
-        If lvItem.ForeColor = SystemColors.WindowText Then
+        If lvItem.ForeColor = UserCurrentColor Then
           lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(lvItem.Tag) & vbNewLine & "Current User with Internet"
         Else
           lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(lvItem.Tag) & vbNewLine & "All Users with Internet"
@@ -272,7 +361,7 @@
       For Each lvItem As ListViewItem In lvNoNet.SelectedItems
         lvNoNet.Items.Remove(lvItem)
         lvNet.Items.Add(lvItem)
-        If lvItem.ForeColor = SystemColors.WindowText Then
+        If lvItem.ForeColor = UserCurrentColor Then
           lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(lvItem.Tag) & vbNewLine & "Current User with Internet"
         Else
           lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(lvItem.Tag) & vbNewLine & "All Users with Internet"
@@ -293,7 +382,7 @@
       For Each lvItem As ListViewItem In lvNet.SelectedItems
         lvNet.Items.Remove(lvItem)
         lvNoNet.Items.Add(lvItem)
-        If lvItem.ForeColor = SystemColors.WindowText Then
+        If lvItem.ForeColor = UserCurrentColor Then
           lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(lvItem.Tag) & vbNewLine & "Current User with OS"
         Else
           lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(lvItem.Tag) & vbNewLine & "All Users with OS"
@@ -306,27 +395,105 @@
     End If
   End Sub
 
+  Private Sub lvNoNet_MouseDown(sender As Object, e As MouseEventArgs) Handles lvNoNet.MouseDown
+    If Not e.Button = MouseButtons.Right Then Return
+    Dim lvItem As ListViewItem = lvNoNet.HitTest(e.Location).Item
+    If lvItem Is Nothing Then Return
+    mnuStartup.Tag = "OS:" & lvItem.Tag
+    If lvItem.ForeColor = UserCurrentColor Then
+      mnuStartupAll.Checked = False
+      mnuStartupCurrent.Checked = True
+    Else
+      mnuStartupAll.Checked = True
+      mnuStartupCurrent.Checked = False
+    End If
+    mnuStartup.Show(lvNoNet, e.Location)
+  End Sub
+
+  Private Sub lvNet_MouseDown(sender As Object, e As MouseEventArgs) Handles lvNet.MouseDown
+    If Not e.Button = MouseButtons.Right Then Return
+    Dim lvItem As ListViewItem = lvNet.HitTest(e.Location).Item
+    If lvItem Is Nothing Then Return
+    mnuStartup.Tag = "NET:" & lvItem.Tag
+    If lvItem.ForeColor = UserCurrentColor Then
+      mnuStartupAll.Checked = False
+      mnuStartupCurrent.Checked = True
+    Else
+      mnuStartupAll.Checked = True
+      mnuStartupCurrent.Checked = False
+    End If
+    mnuStartup.Show(lvNet, e.Location)
+  End Sub
+
   Private Sub pctNetStartup_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles pctNetStartup.MouseDown
-    mnuStartup.Tag = "NET"
-    mnuStartup.Show(pctNetStartup, New Point(0, 17))
+    mnuStartupDir.Tag = "NET"
+    mnuStartupDir.Show(pctNetStartup, New Point(0, 17))
+  End Sub
+
+  Private Sub mnuStartupCurrent_Click(sender As Object, e As EventArgs) Handles mnuStartupCurrent.Click
+    Dim tgt As String = mnuStartup.Tag
+    If tgt.IndexOf(":") = -1 Then Return
+    Dim path As String = tgt.Substring(tgt.IndexOf(":") + 1)
+    Select Case tgt.Substring(0, tgt.IndexOf(":"))
+      Case "OS"
+        For Each lvItem As ListViewItem In lvNoNet.Items
+          If Not lvItem.Tag = path Then Continue For
+          lvItem.ForeColor = UserCurrentColor
+          lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(path) & vbNewLine & "Current User with OS"
+          Exit For
+        Next
+      Case "NET"
+        For Each lvItem As ListViewItem In lvNet.Items
+          If Not lvItem.Tag = path Then Continue For
+          lvItem.ForeColor = UserCurrentColor
+          lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(path) & vbNewLine & "Current User with Internet"
+          Exit For
+        Next
+    End Select
+  End Sub
+
+  Private Sub mnuStartupAll_Click(sender As Object, e As EventArgs) Handles mnuStartupAll.Click
+    Dim tgt As String = mnuStartup.Tag
+    If tgt.IndexOf(":") = -1 Then Return
+    Dim path As String = tgt.Substring(tgt.IndexOf(":") + 1)
+    Select Case tgt.Substring(0, tgt.IndexOf(":"))
+      Case "OS"
+        For Each lvItem As ListViewItem In lvNoNet.Items
+          If Not lvItem.Tag = path Then Continue For
+          lvItem.ForeColor = UserAllColor
+          lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(path) & vbNewLine & "All Users with OS"
+          Exit For
+        Next
+      Case "NET"
+        For Each lvItem As ListViewItem In lvNet.Items
+          If Not lvItem.Tag = path Then Continue For
+          lvItem.ForeColor = UserAllColor
+          lvItem.ToolTipText = IO.Path.GetFileNameWithoutExtension(path) & vbNewLine & "All Users with Internet"
+          Exit For
+        Next
+    End Select
   End Sub
 
   Private Sub pctOSStartup_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles pctOSStartup.MouseDown
-    mnuStartup.Tag = "OS"
-    mnuStartup.Show(pctOSStartup, New Point(0, 17))
+    mnuStartupDir.Tag = "OS"
+    mnuStartupDir.Show(pctOSStartup, New Point(0, 17))
   End Sub
 
-  Private Sub mnuStartupCurrent_Click(sender As System.Object, e As System.EventArgs) Handles mnuStartupCurrent.Click
+  Private Sub mnuStartupDirCurrent_Click(sender As System.Object, e As System.EventArgs) Handles mnuStartupDirCurrent.Click
     Dim startPath As String = Environment.GetFolderPath(Environment.SpecialFolder.Startup)
-    If mnuStartup.Tag = "NET" Then startPath = sPath
-    mnuStartup.Tag = Nothing
+    If mnuStartupDir.Tag = "NET" Then startPath = sPath
+    mnuStartupDir.Tag = Nothing
     If IO.Directory.Exists(startPath) Then Process.Start(startPath)
   End Sub
 
-  Private Sub mnuStartupAll_Click(sender As System.Object, e As System.EventArgs) Handles mnuStartupAll.Click
+  Private Sub tmrSave_Tick(sender As Object, e As EventArgs) Handles tmrSave.Tick
+    cmdSave.Enabled = HasChanges()
+  End Sub
+
+  Private Sub mnuStartupDirAll_Click(sender As System.Object, e As System.EventArgs) Handles mnuStartupDirAll.Click
     Dim startPath As String = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup)
-    If mnuStartup.Tag = "NET" Then startPath = sAllPath
-    mnuStartup.Tag = Nothing
+    If mnuStartupDir.Tag = "NET" Then startPath = sAllPath
+    mnuStartupDir.Tag = Nothing
     If IO.Directory.Exists(startPath) Then Process.Start(startPath)
   End Sub
 End Class
