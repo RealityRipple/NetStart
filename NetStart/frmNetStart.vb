@@ -117,16 +117,8 @@
   End Sub
 
   Public Sub RunIt()
-    For Each sShortcut In My.Computer.FileSystem.GetFiles(sPath)
-      If Not CBool(My.Computer.FileSystem.GetFileInfo(sShortcut).Attributes And IO.FileAttributes.Hidden) Then
-        Try
-          Process.Start(sShortcut)
-        Catch ex As Exception
-        End Try
-      End If
-    Next
-    If Not String.IsNullOrEmpty(sAllPath) Then
-      For Each sShortcut In My.Computer.FileSystem.GetFiles(sAllPath)
+    If IO.Directory.Exists(sPath) Then
+      For Each sShortcut In My.Computer.FileSystem.GetFiles(sPath)
         If Not CBool(My.Computer.FileSystem.GetFileInfo(sShortcut).Attributes And IO.FileAttributes.Hidden) Then
           Try
             Process.Start(sShortcut)
@@ -134,6 +126,18 @@
           End Try
         End If
       Next
+    End If
+    If Not String.IsNullOrEmpty(sAllPath) Then
+      If IO.Directory.Exists(sAllPath) Then
+        For Each sShortcut In My.Computer.FileSystem.GetFiles(sAllPath)
+          If Not CBool(My.Computer.FileSystem.GetFileInfo(sShortcut).Attributes And IO.FileAttributes.Hidden) Then
+            Try
+              Process.Start(sShortcut)
+            Catch ex As Exception
+            End Try
+          End If
+        Next
+      End If
     End If
   End Sub
 
