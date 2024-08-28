@@ -164,7 +164,11 @@
     Try
       Dim sInfo As String = My.Computer.FileSystem.SpecialDirectories.Temp & "\info.txt"
       If My.Computer.FileSystem.FileExists(sInfo) Then My.Computer.FileSystem.DeleteFile(sInfo)
-      My.Computer.Network.DownloadFile(My.Settings.RemoteFile, sInfo)
+      Using cli As New Net.WebClient
+        cli.Headers.Add("User-Agent", "none")
+        cli.CachePolicy = New Net.Cache.HttpRequestCachePolicy(System.Net.Cache.HttpRequestCacheLevel.NoCacheNoStore)
+        cli.DownloadFile(My.Settings.RemoteFile, sInfo)
+      End Using
       If My.Computer.FileSystem.FileExists(sInfo) Then
         If My.Computer.FileSystem.GetFileInfo(sInfo).Length = My.Settings.FileSize Then
           bRet = True
@@ -187,7 +191,11 @@
     If My.Computer.FileSystem.FileExists(sInfo) Then My.Computer.FileSystem.DeleteFile(sInfo)
     Application.DoEvents()
     Try
-      My.Computer.Network.DownloadFile(txtAddress.Text, sInfo)
+      Using cli As New Net.WebClient
+        cli.Headers.Add("User-Agent", "none")
+        cli.CachePolicy = New Net.Cache.HttpRequestCachePolicy(System.Net.Cache.HttpRequestCacheLevel.NoCacheNoStore)
+        cli.DownloadFile(txtAddress.Text, sInfo)
+      End Using
     Catch ex As Exception
       lblStatus.Text = "Error: " & ex.Message
       txtAddress.Focus()
