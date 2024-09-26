@@ -24,6 +24,10 @@
           Return
         End If
       End If
+      If e.CommandLine.Contains("/uninstall") Then
+        e.Cancel = True
+        Return
+      End If
       If My.Settings.MustUpgrade Then
         My.Settings.Upgrade()
         My.Settings.MustUpgrade = False
@@ -32,6 +36,10 @@
     End Sub
 
     Private Sub MyApplication_StartupNextInstance(sender As Object, e As Microsoft.VisualBasic.ApplicationServices.StartupNextInstanceEventArgs) Handles Me.StartupNextInstance
+      If e.CommandLine.Contains("/uninstall") Then
+        System.Windows.Forms.Application.Exit()
+        Return
+      End If
       frmNetStart.Opacity = 1
       frmNetStart.ShowInTaskbar = True
       frmNetStart.Visible = True
